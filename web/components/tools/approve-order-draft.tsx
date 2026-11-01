@@ -7,6 +7,20 @@ import {
   type ApproveOrderDraftInput,
   type ApproveOrderDraftOutput,
 } from 'restaurant-ordering-harness/src/worksheet-tools.js';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../ui/alert-dialog';
+import { Button, buttonVariants } from '../ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { FieldError } from '../ui/field';
 import { CardNotice, money, useCardSubmission } from './card-controls';
 
 function ApprovalCard({ args, result, addResult }: {
@@ -15,21 +29,44 @@ function ApprovalCard({ args, result, addResult }: {
   addResult: (result: ApproveOrderDraftOutput) => void;
 }) {
   const submission = useCardSubmission(addResult, result);
+  const headline = `Approve revision ${args.revisionId} at ${money(args.subtotalCents, args.currency)}?`;
   return (
-    <section className="tool-card" aria-label="Final review card" style={{ border: '1px solid #bbb', borderRadius: 8, padding: 16, margin: '12px 0' }}>
-      <h3 style={{ marginTop: 0 }}>Review and approve</h3>
-      <p>Revision {args.revisionId}. {args.lineCount} lines. Subtotal {money(args.subtotalCents, args.currency)}.</p>
-      <p>Approval applies to this revision. Servings, stock or offer edits require another review. This remains a draft.</p>
-      {submission.result ? <p role="status">{submission.result.approved ? 'Draft approval recorded' : 'Revision requested'}. Nothing was sent.</p> : (
-        <>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" onClick={() => submission.submit({ approved: true, revisionId: args.revisionId })}>Approve draft</button>
-            <button type="button" onClick={() => submission.submit({ approved: false, revisionId: args.revisionId })}>Revise</button>
-          </div>
-          {submission.error && <p role="alert">{submission.error}</p>}
-        </>
-      )}
-    </section>
+    <Card aria-label="Final review card" role="region" className="my-3">
+      <CardHeader>
+        <CardTitle>Review and approve</CardTitle>
+        <CardDescription>
+          Revision {args.revisionId}. {args.lineCount} lines. Subtotal {money(args.subtotalCents, args.currency)}.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">Approval applies to this revision. Servings, stock or offer edits require another review. This remains a draft.</p>
+      </CardContent>
+      <CardFooter className="flex-col items-stretch">
+        {submission.result ? <p role="status" className="text-sm">{submission.result.approved ? 'Draft approval recorded' : 'Revision requested'}. Nothing was sent.</p> : (
+          <>
+            <div className="flex gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger className={buttonVariants()}>Approve draft</AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{headline}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This records approval for revision {args.revisionId} covering {args.lineCount} lines. Nothing is sent to any vendor.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => submission.submit({ approved: false, revisionId: args.revisionId })}>Revise instead</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => submission.submit({ approved: true, revisionId: args.revisionId })}>Confirm approval</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button type="button" variant="outline" onClick={() => submission.submit({ approved: false, revisionId: args.revisionId })}>Revise</Button>
+            </div>
+            {submission.error && <FieldError errors={[{ message: submission.error }]} />}
+          </>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
 

@@ -80,3 +80,7 @@ For the PR #8 branch, in priority order. I did not edit those files.
 - `discord.txt`, `x.txt`, and `drafts.json` are byte-identical before and after. Only the HTML changed.
 - `C:/Users/Paul/AppData/Local/Temp/contrast.mjs` checks every text and boundary pair in both themes. All pass.
 - Before and after screenshots sit at `C:/Users/Paul/AppData/Local/Temp/ui-before.html` and the regenerated `outputs/social/2026-10-31-intro/posting-desk.html`.
+
+## Addendum: worksheet rebuilt on shadcn
+
+The worksheet page was rebuilt from scratch instead of patched. All seven worksheet items above are now covered by real components rather than plain-CSS translations: Card slots plus the Table pattern on the draft card, Field wrappers with labels, hints and blocking text on servings, stock and answer rows, the Alert Dialog treatment on revision-bound approval ("Approve revision … at …?"), Skeleton progress while gates run, and ActionBar copy on assistant turns. Confirmations stay in the transcript; no toast was added. The shadcn default theme carries `--primary` seeded from the brand brick, and the old cream page background is gone.

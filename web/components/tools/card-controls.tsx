@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 export function useCardSubmission<T>(addResult: (result: T) => void, recordedResult: T | undefined) {
   const sent = useRef(false);
@@ -25,7 +26,17 @@ export function useCardSubmission<T>(addResult: (result: T) => void, recordedRes
 }
 
 export function CardNotice({ status, label }: { status: string; label: string }) {
-  return <p role="status">{status === 'incomplete' ? `The ${label} was interrupted. Request a new revision.` : `Preparing ${label}...`}</p>;
+  if (status === 'running') {
+    return (
+      <div role="status" aria-label={`Preparing ${label}`} className="my-3 space-y-2 rounded-xl border p-4">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-1/2" />
+        <p className="text-sm text-muted-foreground">Preparing {label}...</p>
+      </div>
+    );
+  }
+  return <p role="status">The {label} was interrupted. Request a new revision.</p>;
 }
 
 export function money(cents: number | null, currency: string | null) {

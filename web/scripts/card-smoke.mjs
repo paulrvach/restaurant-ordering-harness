@@ -106,6 +106,7 @@ try {
     });
     await page.getByRole('button', { name: 'Review draft', exact: true }).click();
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
+    await page.getByRole('button', { name: 'Confirm approval', exact: true }).click();
     await check('Final approval resumes the real route and leaves a draft', async () => {
       await page.getByText('The synthetic draft is reviewed. No order was placed.', { exact: true }).waitFor({ timeout: 30000 });
       assert.equal(await page.getByRole('button', { name: 'Approve draft', exact: true }).count(), 0);
@@ -151,6 +152,7 @@ try {
   });
   await check('Final approval preserves revision and resumes once', async () => {
     await page.getByRole('button', { name: 'Approve draft', exact: true }).click();
+    await page.getByRole('button', { name: 'Confirm approval', exact: true }).click();
     await page.getByText('Approved draft only. No order was sent.', { exact: true }).waitFor();
     const requests = await page.evaluate(() => window.__cardRequests);
     assert.equal(requests.length, 4);

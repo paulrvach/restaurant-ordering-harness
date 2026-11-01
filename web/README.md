@@ -24,11 +24,11 @@ To use Meta, set `WORKSHEET_OFFLINE_DEMO=0` and the server-only `META_MODEL_API_
 1. Ask to load synthetic bistro stew, 4 servings.
 2. Review the blocked worksheet. Answer the onion question with `confirm each` and flour with the independently confirmed `250 g`. Submit the worksheet's Ask-first decision so every pending tool has a result.
 3. The resumed worksheet shows four catalog lines and a 4450 cent subtotal.
-4. Accept the unchanged worksheet, then review the exact revision in the final approval card. Servings or stock changes require another review.
+4. Accept the unchanged worksheet, then open the final approval card and confirm the exact revision in its dialog. Servings or stock changes require another review.
 
 ## Verification and limits
 
-`npm run check` from the root runs the existing offline behavioral evals, the independent social checks, web types and a real-route streaming test. The test uses the installed Mastra core 1.81.0, Mastra AI SDK 1.11.3 and AI SDK 7.0.159. It checks blocked questions, 4450 cent resolution, revision review, thread isolation, tampered results, malformed requests and concurrency without a model API call.
+`npm run check` from the root runs the existing offline behavioral evals, the independent social checks, web types and a real-route streaming test. The test uses the installed Mastra core 1.81.0, Mastra AI SDK 1.11.3 and AI SDK 7.0.159. It checks blocked questions, 4450 cent resolution, revision review, thread isolation, tampered results, malformed requests and concurrency without a model API call. The worksheet presentation renders on shadcn components (Tailwind v4) over the installed assistant-ui primitives; `web/tests/card-structure.ts` asserts that mapping offline, and the approval card confirms through a revision-bound alert dialog.
 
 `GET /api/chat` reports health and whether the server is configured. Missing configuration returns 503 on POST. Input is limited to 100 messages and 100,000 characters. Each reply permits at most three model steps, 1024 output tokens per step, no retries and a 30 second abort deadline. Only one reply runs at a time in this server process.
 
