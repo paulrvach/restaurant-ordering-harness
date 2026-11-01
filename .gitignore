@@ -11,3 +11,4 @@ dist/
 .artifacts/
 *.tsbuildinfo
 .next-build/
+web/next-env.d.ts
