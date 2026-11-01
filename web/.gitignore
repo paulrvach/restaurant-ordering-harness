@@ -1,6 +1,10 @@
 node_modules/
 .next/
 out/
+next-env.d.ts
+*.tsbuildinfo
+dev-smoke.log
+dev-smoke.err
 .env
 .env.*
 !.env.example
