@@ -13,6 +13,13 @@ function chunks(text: string): Record<string, unknown>[] {
 const health = await GET();
 assert.equal(health.status, 200);
 assert.equal((await health.json()).mode, 'offline-synthetic');
+for (const part of [null, 1, 'text', {}, { type: 'text', text: 4 }]) {
+  const malformedPart = await POST(new Request('http://localhost/api/chat', { method: 'POST', body: JSON.stringify({ id: 'bad-parts', messages: [{ id: 'bad', role: 'user', parts: [part] }] }) }));
+  assert.equal(malformedPart.status, 400);
+}
+const afterMalformed = await POST(request('after-malformed', [user('Hello')]));
+assert.equal(afterMalformed.status, 200);
+await afterMalformed.text();
 const response = await POST(request('plain', [user('Hello')]));
 assert.equal(response.status, 200);
 assert.match(response.headers.get('content-type') ?? '', /text\/event-stream/);
