@@ -69,6 +69,11 @@ export async function POST(request: Request) {
         }
         if (!('input' in part) || !('output' in part) || part.type !== `tool-${gate.name}` || JSON.stringify(part.input) !== JSON.stringify(gate.args)) throw new Error();
         if (gate.consumed) { if (JSON.stringify(part.output) !== JSON.stringify(gate.result)) throw new Error(); continue; }
+        const repeat = batch.find(item => item.gate === gate);
+        if (repeat) {
+          if (JSON.stringify(part.output) !== JSON.stringify(repeat.output)) throw new Error();
+          continue;
+        }
         batch.push({ gate, output: part.output });
       }
       // Validate the whole batch against the pre-batch worksheet before mutating it.
