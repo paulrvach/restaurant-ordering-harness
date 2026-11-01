@@ -2,7 +2,7 @@
 
 An eval-first project for the 2026 Meta Global AI Developer Hackathon: build a recipe, calculate ingredient needs, choose catalog products, and produce source-backed, priced vendor order drafts.
 
-**Current status:** a runnable TypeScript baseline with offline behavioral checks, a synthetic order demo, a prepared Meta recipe-extraction eval, and an independent social mini harness with illustrated post previews. The assistant-ui frontend, live catalog matching, review persistence and vendor exports are planned work. No purchasing or autonomous posting is implemented.
+The project includes offline behavioral checks, a synthetic order demo, an assistant-ui worksheet in `web/`, a prepared Meta recipe-extraction eval, and an independent social mini harness. Live model results require a separate approved run. Catalog import, durable review history and vendor export files remain later slices.
 
 ## Run the baseline
 
@@ -11,12 +11,15 @@ Use Node 22.22+ (recommended for the installed Mastra dependency tree) and npm. 
 ```powershell
 npm ci
 npm --prefix social ci
+npm --prefix web ci
 npm run check
 npm run demo
 npm run social
 ```
 
 The demo uses **synthetic** tomato soup and a synthetic vendor quote: 500g for four servings, scaled to 20 servings, minus 1kg of stock, yields one 2kg pack at $12.50. Output is an order draft; subtotal excludes tax, freight and fees.
+
+For the chat worksheet, follow the [web setup and verification commands](web/README.md). The UI uses the same deterministic planner and tool schemas as the offline evals. Orders remain drafts.
 
 Open the generated `outputs/social/2026-10-31-intro/posting-desk.html` for Discord/X drafts, image preview/download and destination links. See [social's own commands and workflow](social/README.md). Each post has its own folder, image brief, asset, alt text and published-link record.
 

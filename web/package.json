@@ -1,0 +1,37 @@
+{
+  "name": "restaurant-worksheet-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test:stream": "node --import tsx tests/chat-stream.ts",
+    "check": "npm run typecheck && npm run test:stream && npm run test:worksheet",
+    "test:worksheet": "node --import tsx tests/worksheet-view.ts"
+  },
+  "dependencies": {
+    "@assistant-ui/react": "0.15.32",
+    "@mastra/ai-sdk": "1.11.3",
+    "@mastra/core": "1.81.0",
+    "ai": "7.0.159",
+    "decimal.js": "10.6.0",
+    "next": "15.5.28",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "restaurant-ordering-harness": "file:..",
+    "zod": "4.6.7",
+    "@assistant-ui/ai-sdk": "0.0.16"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "postcss": "8.5.32"
+  }
+}
