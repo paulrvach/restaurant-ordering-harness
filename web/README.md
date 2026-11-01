@@ -1,37 +1,22 @@
-# Order worksheet
+# Prep / Order
 
-Next.js, assistant-ui and an in-process Mastra agent show synthetic order drafts. Draft review never places an order.
+assistant-ui renders the chat, Mastra runs the assistant, and Convex stores conversations. See [architecture](../docs/chat-architecture.md) for state ownership and limits.
 
-## Run locally
-
-From the repository root, install the root, social and web packages with `npm ci`, `npm --prefix social ci` and `npm --prefix web ci`.
+From the repository root:
 
 ```powershell
-cd web
-Copy-Item .env.example .env.local
-# For the local synthetic demonstration, set WORKSHEET_OFFLINE_DEMO=1.
-npm run dev
+npm ci
+npm --prefix social ci
+npm --prefix web ci
+npx convex dev
 ```
 
-Open [localhost:3000](http://localhost:3000). The explicit offline mode uses a local deterministic model. It makes no provider calls and supports the synthetic bistro stew and tomato soup fixtures. Ask for either fixture by name. A plain greeting also streams a local reply.
+In another terminal, run `npm run dev` and open [localhost:3000](http://localhost:3000). `/chat` opens the same app. To select a port, use `npm run dev -- --port 3001`.
 
-After configuring `web/.env.local`, `npm run dev` from the repository root starts the same app. The sidebar shows recipe threads and the current worksheet. The progress panel tracks missing facts, purchase packs and final review. Revision history and a read-only vendor preview follow the active thread.
+The launcher loads existing shell variables, then `web/.env.local`, root `.env.local`, and root `.env`, keeping the first defined value. Set `NEXT_PUBLIC_CONVEX_URL` in `web/.env.local` and keep `META_MODEL_API_KEY` or `MODEL_API_KEY` in an ignored server environment file. The existing root Meta key is supported. Credentials never need a `NEXT_PUBLIC_` prefix.
 
-To use Meta, set `WORKSHEET_OFFLINE_DEMO=0` and the server-only `META_MODEL_API_KEY` in `.env.local`. This does not approve a live eval. The separate `npm run eval:live` command remains manual and requires the owner's approval.
+To persist usage, set the same server-only `CHAT_SERVER_TOKEN` in a local environment file and on the selected Convex deployment with `npx convex env set CHAT_SERVER_TOKEN`. The CLI accepts the value through stdin. Without that token, usage is recorded as numbers in the server log. Missing or rejected model credentials produce a visible chat error. Missing Convex configuration produces a setup screen.
 
-## Check the bistro fixture
+Run `npm run check` from the root for restaurant evals, chat persistence and HTTP tests, social checks, and web types. Run `npm --prefix web run build` for a production bundle, with the development server stopped. These commands make no model requests.
 
-1. Ask to load synthetic bistro stew, 4 servings.
-2. Review the blocked worksheet. Answer the onion question with `confirm each` and flour with the independently confirmed `250 g`. Submit the worksheet's Ask-first decision so every pending tool has a result.
-3. The resumed worksheet shows four catalog lines and a 4450 cent subtotal.
-4. Accept the unchanged worksheet, then open the final approval card and confirm the exact revision in its dialog. Servings or stock changes require another review.
-
-## Verification and limits
-
-`npm run check` from the root runs the existing offline behavioral evals, the independent social checks, web types and a real-route streaming test. The test uses the installed Mastra core 1.81.0, Mastra AI SDK 1.11.3 and AI SDK 7.0.159. It checks blocked questions, 4450 cent resolution, revision review, thread isolation, tampered results, malformed requests and concurrency without a model API call. The worksheet presentation renders on shadcn components (Tailwind v4) over the installed assistant-ui primitives; `web/tests/card-structure.ts` asserts that mapping offline, and the approval card confirms through a revision-bound alert dialog.
-
-`GET /api/chat` reports health and whether the server is configured. Missing configuration returns 503 on POST. Input is limited to 100 messages and 100,000 characters. Each reply permits at most three model steps, 1024 output tokens per step, no retries and a 30 second abort deadline. Only one reply runs at a time in this server process.
-
-Sessions are in memory, expire after an hour and disappear on server restart. This local demonstration has no production account authorization or durable chat history. Prices and revisions come from server session state. Client tool arguments and results must match the issued gate. There is no export transmission endpoint.
-
-See the [verification report](../docs/worksheet-verification.md) for output pairs, browser evidence and the work split.
+The app is a shared development workspace. It does not implement private accounts or restore the removed worksheet cards. Use synthetic examples until authentication and authorization are added.
