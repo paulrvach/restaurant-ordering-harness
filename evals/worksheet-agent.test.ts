@@ -157,3 +157,17 @@ test('declining final approval clears review so the worksheet returns to the edi
   expect(session.validateGate('approveOrderDraft', session.snapshot().approval)).toBe(false);
   expect(session.validateGate('proposeOrderDraft', session.snapshot().proposal)).toBe(true);
 });
+
+test('correcting a stock unit clears its obsolete question and unblocks the draft', () => {
+  const tomato = JSON.parse(readFileSync('evals/fixtures/tomato-soup.json', 'utf8'));
+  const input = structuredClone(tomato.orderInput);
+  input.inventory = [{ ingredient: 'tomato', amount: 500, unit: 'ml' }];
+  const session = createWorksheetSession(input);
+  expect(session.snapshot().proposal.draft).toMatchObject({ status: 'needsReview', subtotalCents: null });
+  expect(session.snapshot().questions.map(question => question.topic)).toEqual(['unit']);
+  session.ingestResult('proposeOrderDraft', session.snapshot().proposal, {
+    approved: false, servings: 20, stockEdits: [{ ingredient: 'tomato', amount: 1, unit: 'kg' }],
+  });
+  expect(session.snapshot().questions).toEqual([]);
+  expect(session.snapshot().proposal.draft).toMatchObject({ status: 'draft', subtotalCents: 1250 });
+});
