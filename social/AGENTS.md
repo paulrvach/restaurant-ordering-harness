@@ -2,6 +2,8 @@
 
 This folder owns post drafting, image briefs, assets, previews and published-link records. It has independent dependencies and checks. Read the parent AGENTS.md for shared project rules.
 
+Before drafting or generating a social visual, read `brand/GUIDELINES.md` and `brand/IMAGE-PROMPT.md`. The owner selected the mixed-media photo/UI aesthetic of Motionimo's A Day in HR as the default. `brand/tokens.json` holds the palette and proposed production tokens. This supersedes the earlier food-editorial default. New post scaffolds include the shared image direction automatically.
+
 One directory per post under posts/. Keep post.json, image-prompt.md, the selected image and published-links.json together. Every post needs an image and descriptive alt text. State whether it is AI-generated, a screenshot, a photo or a graphic. An illustration must never be described as a working product screenshot.
 
 Use the built-in image-generation tool for generated images in Codex and preserve the final prompt. Prefer Meta credits for application model experiments; image generation here is a separate built-in tool until a Meta image integration is explicitly implemented and verified.
