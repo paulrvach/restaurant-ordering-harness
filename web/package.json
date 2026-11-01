@@ -9,7 +9,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:stream": "node --import tsx tests/chat-stream.ts",
-    "check": "npm run typecheck && npm run test:stream"
+    "check": "npm run typecheck && npm run test:stream && npm run test:worksheet",
+    "test:worksheet": "node --import tsx tests/worksheet-view.ts"
   },
   "dependencies": {
     "@assistant-ui/react": "0.15.32",

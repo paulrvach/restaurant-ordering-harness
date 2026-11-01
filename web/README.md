@@ -15,6 +15,8 @@ npm run dev
 
 Open [localhost:3000](http://localhost:3000). The explicit offline mode uses a local deterministic model. It makes no provider calls and supports the synthetic bistro stew and tomato soup fixtures. Ask for either fixture by name. A plain greeting also streams a local reply.
 
+After configuring `web/.env.local`, `npm run dev` from the repository root starts the same app. The sidebar shows recipe threads and the current worksheet. The progress panel tracks missing facts, purchase packs and final review. Revision history and a read-only vendor preview follow the active thread.
+
 To use Meta, set `WORKSHEET_OFFLINE_DEMO=0` and the server-only `META_MODEL_API_KEY` in `.env.local`. This does not approve a live eval. The separate `npm run eval:live` command remains manual and requires the owner's approval.
 
 ## Check the bistro fixture
@@ -31,3 +33,5 @@ To use Meta, set `WORKSHEET_OFFLINE_DEMO=0` and the server-only `META_MODEL_API_
 `GET /api/chat` reports health and whether the server is configured. Missing configuration returns 503 on POST. Input is limited to 100 messages and 100,000 characters. Each reply permits at most three model steps, 1024 output tokens per step, no retries and a 30 second abort deadline. Only one reply runs at a time in this server process.
 
 Sessions are in memory, expire after an hour and disappear on server restart. This local demonstration has no production account authorization or durable chat history. Prices and revisions come from server session state. Client tool arguments and results must match the issued gate. There is no export transmission endpoint.
+
+See the [verification report](../docs/worksheet-verification.md) for output pairs, browser evidence and the work split.

@@ -23,8 +23,9 @@ export function Thread() {
               </div>
             ),
             AssistantMessage: () => (
-              <div style={{ margin: '8px auto 8px 0', maxWidth: 640 }}>
+              <div style={{ margin: '8px auto 8px 0', width: '100%', minWidth: 0 }}>
                 <MessagePrimitive.Parts />
+                <MessagePrimitive.Error><p role="alert">Reply unavailable. Check the server connection or start a new recipe thread.</p></MessagePrimitive.Error>
               </div>
             ),
           }}
