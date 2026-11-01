@@ -12,6 +12,10 @@ The [real-route streaming check](../web/tests/chat-stream.ts) uses Mastra core 1
 
 The integrated `npm run check` passed with 21 restaurant evals, two social evals, web types, real-route stream checks and worksheet state checks. The production build passed on Windows with Node 22.17.0. It emitted Mastra's existing dynamic-dependency webpack warning. Node 22.22 or newer remains recommended for the dependency engine requirements.
 
+## UI rebuild on shadcn
+
+The presentation layer was rebuilt from scratch on Tailwind v4 with shadcn base-nova components (`web/components/ui/`, `components.json`) over the installed assistant-ui 0.15 primitives (`makeAssistantToolUI`, Thread, Composer, Message, ActionBar, ThreadList). The server route, Mastra agent, worksheet view, and offline evals are unchanged. The draft card uses the shadcn Table with a worded status Badge, servings and stock rows use Field with labels and hints, running gates render Skeletons, assistant turns expose ActionBar copy, and final approval confirms through an Alert Dialog bound to revision id plus subtotal. The old hand-rolled card CSS is gone; the shadcn default theme carries `--primary` seeded from the brand brick. `web/tests/card-structure.ts` was rewritten to assert the new mapping, and the card smoke script was updated for the two-click dialog approval. A fresh browser pass has not been run in this checkout because no browser is installed here.
+
 ## Observed output pairs
 
 | Case | Before | After |

@@ -8,6 +8,10 @@ import {
   type RequestMissingFactInput,
   type RequestMissingFactOutput,
 } from 'restaurant-ordering-harness/src/worksheet-tools.js';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field';
+import { Input } from '../ui/input';
 import { CardNotice, useCardSubmission } from './card-controls';
 
 function MissingFactCard({ args, result, addResult }: {
@@ -20,21 +24,30 @@ function MissingFactCard({ args, result, addResult }: {
   const submission = useCardSubmission(addResult, result);
   const answer = requestMissingFactOutputSchema.safeParse({ ingredient: args.ingredient, sku: args.sku, topic: args.topic, value: value.trim() });
   return (
-    <section className="tool-card" aria-label="Missing fact card" style={{ border: '1px solid #bbb', borderRadius: 8, padding: 16, margin: '12px 0' }}>
-      <h3 style={{ marginTop: 0 }}>{args.label}</h3>
-      <p>{args.ingredient} / {args.sku} / {args.topic}</p>
-      <p id={`${inputId}-reason`}>{args.reason}</p>
-      {submission.result ? <p role="status">Answer recorded: {submission.result.value}</p> : (
-        <form onSubmit={(event) => { event.preventDefault(); if (answer.success) submission.submit(answer.data); }}>
-          <label htmlFor={inputId}>{args.label}</label>
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <input id={inputId} aria-describedby={`${inputId}-reason`} value={value} placeholder={args.placeholder} onChange={(event) => setValue(event.target.value)} style={{ flex: 1, minWidth: 0 }} />
-            <button type="submit" disabled={!answer.success}>Answer</button>
-          </div>
-          {submission.error && <p role="alert">{submission.error}</p>}
-        </form>
-      )}
-    </section>
+    <Card aria-label="Missing fact card" className="my-3">
+      <CardHeader>
+        <CardTitle>{args.label}</CardTitle>
+        <CardDescription>{args.ingredient} / {args.sku} / {args.topic}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p id={`${inputId}-reason`} className="text-sm text-muted-foreground">{args.reason}</p>
+      </CardContent>
+      <CardFooter className="flex-col items-stretch">
+        {submission.result ? <p role="status" className="text-sm">Answer recorded: {submission.result.value}</p> : (
+          <form onSubmit={(event) => { event.preventDefault(); if (answer.success) submission.submit(answer.data); }}>
+            <Field>
+              <FieldLabel htmlFor={inputId}>{args.label}</FieldLabel>
+              <div className="flex gap-2">
+                <Input id={inputId} aria-describedby={`${inputId}-reason`} value={value} placeholder={args.placeholder} onChange={(event) => setValue(event.target.value)} className="min-w-0 flex-1" />
+                <Button type="submit" disabled={!answer.success}>Answer</Button>
+              </div>
+              <FieldDescription>Answer with a measured value so the draft can recalculate.</FieldDescription>
+            </Field>
+            {submission.error && <FieldError errors={[{ message: submission.error }]} />}
+          </form>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
 
