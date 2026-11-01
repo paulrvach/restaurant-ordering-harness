@@ -2,7 +2,7 @@
 
 This folder owns post drafting, image briefs, assets, previews and published-link records. It has independent dependencies and checks. Read the parent AGENTS.md for shared project rules.
 
-Before drafting or generating a social visual, read `brand/GUIDELINES.md` and `brand/IMAGE-PROMPT.md`. The owner selected the mixed-media photo/UI aesthetic of Motionimo's A Day in HR as the default. `brand/tokens.json` holds the palette and proposed production tokens. This supersedes the earlier food-editorial default. New post scaffolds include the shared image direction automatically.
+Before drafting or generating a social visual, read `brand/GUIDELINES.md` and `brand/IMAGE-PROMPT.md`, and use `brand/approved-poster.png` as the approved visual reference. Kanos is the display-type target; the actual font is not installed and generated lettering is an approximation. New post scaffolds include the shared image direction automatically.
 
 One directory per post under posts/. Keep post.json, image-prompt.md, the selected image and published-links.json together. Every post needs an image and descriptive alt text. State whether it is AI-generated, a screenshot, a photo or a graphic. An illustration must never be described as a working product screenshot.
 

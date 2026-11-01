@@ -25,7 +25,7 @@ Each `posts/<id>/` contains `post.json`, `image-prompt.md`, the selected image a
 
 The first image was made with Codex's built-in image tool and is a concept illustration, not a working app screenshot. Its exact prompt is saved beside it. Built-in generation does not consume the project's Meta API credits. A future Muse Image adapter can use those credits once its key, entitlement and API behavior are verified; this tool does not claim that integration exists.
 
-The default aesthetic follows [A Day in HR](https://motionimo.xyz/video/a-day-in-hr): mixed-media photography, enlarged software UI, clean sans-serif typography, green/mint operational graphics and playful cutout collage. The actionable [brand guidelines](brand/GUIDELINES.md), [shared image brief](brand/IMAGE-PROMPT.md) and [tokens](brand/tokens.json) are saved in `brand/`. New post scaffolds include this direction automatically. The first image predates these guidelines; its original generation record is preserved.
+The approved direction combines Kanos-style fluid lettering, original hand drawings, organic decals and paper texture in red and cream. See the [approved poster](brand/approved-poster.png), [brand guidelines](brand/GUIDELINES.md), [shared image brief](brand/IMAGE-PROMPT.md) and [tokens](brand/tokens.json). Kanos is the display-type target; the font file is not installed. New post scaffolds include the shared image brief automatically.
 
 X length validation uses twitter-text's weighted counting. The generator validates HTTPS links without embedded credentials, but it cannot establish whether a claim is true or a URL is safe to publish. Review drafts and assets. Do not include private catalogs, keys or personal information.
 
