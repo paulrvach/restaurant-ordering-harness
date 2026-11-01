@@ -9,6 +9,7 @@ const approval = readFileSync(new URL('../components/tools/approve-order-draft.t
 const thread = readFileSync(new URL('../components/thread.tsx', import.meta.url), 'utf8');
 const shell = readFileSync(new URL('../components/worksheet-shell.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const controls = readFileSync(new URL('../components/tools/card-controls.tsx', import.meta.url), 'utf8');
 
 for (const [name, source] of [['draft', draft], ['missing-fact', missing], ['approval', approval]] as const) {
   assert.doesNotMatch(source, /#bbb/, `${name} card still uses an inline #bbb border`);
@@ -29,6 +30,19 @@ assert.match(missing, /ui\/input/, 'missing-fact card does not use the shadcn In
 // Final approval is a revision-bound Alert Dialog, never two same-weight buttons alone.
 assert.match(approval, /ui\/alert-dialog/, 'approval card does not use the shadcn Alert Dialog');
 assert.match(approval, /AlertDialogAction/, 'approval dialog has no explicit confirm action');
+
+// Named tool cards keep an explicit region role: Card renders a plain div,
+// which never earns the region role from aria-label alone.
+for (const [name, source] of [['draft', draft], ['missing-fact', missing], ['approval', approval]] as const) {
+  assert.match(source, /role="region"/, `${name} card lost its region role`);
+}
+
+// The dialog's revise choice records approved:false instead of just closing.
+assert.match(approval, /AlertDialogCancel onClick/, 'dialog revise choice records nothing');
+
+// Loading text is plain ASCII dots, never mojibake.
+assert.match(controls, /Preparing \{label\}\.\.\./, 'loading text lost its ellipsis');
+assert.doesNotMatch(controls, /Ã/, 'loading text carries mojibake bytes');
 
 // Assistant turns expose copy through the ActionBar primitive.
 assert.match(thread, /ActionBarPrimitive/, 'thread has no ActionBar copy on assistant turns');

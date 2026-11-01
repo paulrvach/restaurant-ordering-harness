@@ -38,7 +38,7 @@ function DraftCard({ args, result, addResult }: {
   const updateStock = (index: number, edit: Partial<StockRow>) => setStock((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, ...edit } : row));
   const blocked = args.draft.status !== 'draft' || args.draft.subtotalCents === null;
   return (
-    <Card aria-label="Order worksheet card" className="my-3">
+    <Card aria-label="Order worksheet card" role="region" className="my-3">
       <CardHeader>
         <CardTitle>Order worksheet</CardTitle>
         <CardDescription>

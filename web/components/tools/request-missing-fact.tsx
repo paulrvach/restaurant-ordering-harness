@@ -24,7 +24,7 @@ function MissingFactCard({ args, result, addResult }: {
   const submission = useCardSubmission(addResult, result);
   const answer = requestMissingFactOutputSchema.safeParse({ ingredient: args.ingredient, sku: args.sku, topic: args.topic, value: value.trim() });
   return (
-    <Card aria-label="Missing fact card" className="my-3">
+    <Card aria-label="Missing fact card" role="region" className="my-3">
       <CardHeader>
         <CardTitle>{args.label}</CardTitle>
         <CardDescription>{args.ingredient} / {args.sku} / {args.topic}</CardDescription>

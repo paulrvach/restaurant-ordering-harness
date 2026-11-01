@@ -31,7 +31,7 @@ function ApprovalCard({ args, result, addResult }: {
   const submission = useCardSubmission(addResult, result);
   const headline = `Approve revision ${args.revisionId} at ${money(args.subtotalCents, args.currency)}?`;
   return (
-    <Card aria-label="Final review card" className="my-3">
+    <Card aria-label="Final review card" role="region" className="my-3">
       <CardHeader>
         <CardTitle>Review and approve</CardTitle>
         <CardDescription>
@@ -55,7 +55,7 @@ function ApprovalCard({ args, result, addResult }: {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Revise instead</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => submission.submit({ approved: false, revisionId: args.revisionId })}>Revise instead</AlertDialogCancel>
                     <AlertDialogAction onClick={() => submission.submit({ approved: true, revisionId: args.revisionId })}>Confirm approval</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
