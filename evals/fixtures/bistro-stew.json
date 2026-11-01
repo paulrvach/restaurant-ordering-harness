@@ -1,0 +1,89 @@
+{
+  "id": "synthetic-bistro-stew-v1",
+  "recipeText": "Synthetic bistro stew. Base yield: 4 servings. Ingredients: 500 g tomato, 2 ea onion (usable weight per onion unstated), 250 mL stock, 2 cups flour. Use the exact catalog ingredients tomato/onion/stock/flour and SKUs TOM-2KG, ONI-10EA, STK-1L, FLR-5KG. No other ingredients.",
+  "coverage": {
+    "abbreviations": ["g", "ea (means each)", "mL (means ml)"],
+    "missingYield": "usable weight per onion unstated; plan in each packs, ask yield as review question",
+    "unknownUnits": "2 cups flour has no compatible catalog dimension; must ask for grams, never invent density"
+  },
+  "expectedFirstPass": {
+    "recipe": null,
+    "questionTopics": [
+      "usable onion yield or confirm planning 2 each against the 10ea pack",
+      "flour cups-to-grams density or confirmed gram amount before planning FLR-5KG"
+    ]
+  },
+  "orderInput": {
+    "recipe": {
+      "name": "Synthetic bistro stew",
+      "servings": 4,
+      "ingredients": [
+        { "ingredient": "tomato", "amount": 500, "unit": "g", "sku": "TOM-2KG" },
+        { "ingredient": "onion", "amount": 2, "unit": "each", "sku": "ONI-10EA" },
+        { "ingredient": "stock", "amount": 250, "unit": "ml", "sku": "STK-1L" },
+        { "ingredient": "flour", "amount": 250, "unit": "g", "sku": "FLR-5KG" }
+      ]
+    },
+    "targetServings": 4,
+    "inventory": [],
+    "catalog": [
+      {
+        "vendorId": "demo-produce",
+        "sku": "TOM-2KG",
+        "ingredient": "tomato",
+        "pack": { "amount": 2, "unit": "kg" },
+        "priceCents": 1250,
+        "currency": "USD",
+        "source": "synthetic-catalog:row-1",
+        "quotedOn": "2026-10-30",
+        "available": true
+      },
+      {
+        "vendorId": "demo-produce",
+        "sku": "ONI-10EA",
+        "ingredient": "onion",
+        "pack": { "amount": 10, "unit": "each" },
+        "priceCents": 800,
+        "currency": "USD",
+        "source": "synthetic-catalog:row-2",
+        "quotedOn": "2026-10-29",
+        "available": true
+      },
+      {
+        "vendorId": "demo-produce",
+        "sku": "STK-1L",
+        "ingredient": "stock",
+        "pack": { "amount": 1, "unit": "l" },
+        "priceCents": 600,
+        "currency": "USD",
+        "source": "synthetic-catalog:row-3",
+        "quotedOn": "2026-10-31",
+        "available": true
+      },
+      {
+        "vendorId": "demo-produce",
+        "sku": "FLR-5KG",
+        "ingredient": "flour",
+        "pack": { "amount": 5, "unit": "kg" },
+        "priceCents": 1800,
+        "currency": "USD",
+        "source": "synthetic-catalog:row-4",
+        "quotedOn": "2026-10-28",
+        "available": true
+      }
+    ],
+    "asOf": "2026-10-31"
+  },
+  "humanResolutionNote": "Flour 250 g is the human-confirmed answer to the cups question (2 cups at the owner's stated 125 g/cup), recorded here as the resolved gold input. The model must ask; it must never invent this conversion.",
+  "expected": {
+    "status": "draft",
+    "currency": "USD",
+    "subtotalCents": 4450,
+    "lines": [
+      { "sku": "TOM-2KG", "packs": 1, "demandBase": 500, "netDemandBase": 500, "lineCents": 1250 },
+      { "sku": "ONI-10EA", "packs": 1, "demandBase": 2, "netDemandBase": 2, "lineCents": 800 },
+      { "sku": "STK-1L", "packs": 1, "demandBase": 250, "netDemandBase": 250, "lineCents": 600 },
+      { "sku": "FLR-5KG", "packs": 1, "demandBase": 250, "netDemandBase": 250, "lineCents": 1800 }
+    ]
+  }
+}
