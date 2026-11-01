@@ -15,6 +15,21 @@ function setup() {
 }
 
 describe("durable chat history", () => {
+  it("lets the sidebar reach conversations beyond the first 100", async () => {
+    const t = setup();
+    await t.run(async (ctx) => {
+      for (let i = 0; i < 101; i++) await ctx.db.insert("threads", {
+        threadId: `saved-${i}`, title: `Recipe ${i}`, status: "regular", createdAt: i, updatedAt: i,
+      });
+    });
+    const first = await t.query(api.threads.list, { paginationOpts: { numItems: 100, cursor: null } });
+    expect(first.page).toHaveLength(100);
+    expect(first.isDone).toBe(false);
+    const last = await t.query(api.threads.list, { paginationOpts: { numItems: 100, cursor: first.continueCursor } });
+    expect(last.page.map((thread) => thread.threadId)).toEqual(["saved-0"]);
+    expect(last.isDone).toBe(true);
+    expect(new Set([...first.page, ...last.page].map((thread) => thread.threadId)).size).toBe(101);
+  });
   it("keeps both messages when two clients append at the same time", async () => {
     const t = setup();
     await t.mutation(api.threads.initialize, { threadId: "concurrent-chat" });
@@ -74,7 +89,7 @@ describe("durable chat history", () => {
     await t.mutation(api.threads.initialize, { threadId: "archive" });
     await t.mutation(api.history.upsert, { threadId: "archive", format: "ai-sdk", id: "a", parentId: null, blob: JSON.stringify({ role: "user", parts: [{ type: "text", text: "Recipe" }] }) });
     await t.mutation(api.threads.setStatus, { threadId: "archive", status: "archived" });
-    expect(await t.query(api.threads.list, {})).toEqual([]);
+    expect((await t.query(api.threads.list, { paginationOpts: { numItems: 50, cursor: null } })).page).toEqual([]);
     expect((await t.query(api.history.loadEntries, { threadId: "archive", format: "ai-sdk" })).length).toBe(1);
   });
 

@@ -19,6 +19,9 @@ button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px sol
 .new-thread > span:last-child { margin-left: auto; color: #aaa; font-size: 18px; font-weight: 300; }
 .sidebar-section { padding: 24px 10px 9px; font-size: 11px; color: #888; font-weight: 500; }
 .thread-list { overflow: auto; flex: 1; min-height: 0; }
+.load-older { width: 100%; padding: 10px; color: #777; font-size: 12px; text-align: left; border-radius: 7px; }
+.load-older:hover { background: #eaeaea; }
+.load-older:disabled { opacity: .6; }
 .thread-item { display: flex; align-items: center; position: relative; gap: 2px; min-height: 36px; border-radius: 7px; margin: 2px 0; }
 .thread-item[data-active="true"] { background: #e9e9e9; }
 .thread-trigger { display: flex; align-items: center; gap: 9px; text-align: left; min-width: 0; flex: 1; padding: 9px 10px; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

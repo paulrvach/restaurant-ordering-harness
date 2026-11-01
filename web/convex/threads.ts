@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { paginationOptsValidator, paginationResultValidator } from "convex/server";
 import { components } from "./_generated/api";
 import { checkThreadId, findThread } from "./threadStore";
 
@@ -12,16 +13,16 @@ const threadMetadata = v.object({
 
 /** Sidebar list, newest first. */
 export const list = query({
-  args: {},
-  returns: v.array(threadMetadata),
-  handler: async (ctx) => {
-    const rows = await ctx.db.query("threads").withIndex("by_status_updatedAt", (q) => q.eq("status", "regular")).order("desc").take(100);
-    return rows.map((row) => ({
+  args: { paginationOpts: paginationOptsValidator },
+  returns: paginationResultValidator(threadMetadata),
+  handler: async (ctx, { paginationOpts }) => {
+    const result = await ctx.db.query("threads").withIndex("by_status_updatedAt", (q) => q.eq("status", "regular")).order("desc").paginate(paginationOpts);
+    return { ...result, page: result.page.map((row) => ({
       threadId: row.threadId,
       status: row.status,
       updatedAt: row.updatedAt,
       ...(row.title === undefined ? {} : { title: row.title }),
-    }));
+    })) };
   },
 });
 

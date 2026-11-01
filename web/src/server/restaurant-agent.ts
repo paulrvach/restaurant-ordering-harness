@@ -54,8 +54,9 @@ export async function streamRestaurantReply(messages: ChatMessage[], apiKey: str
   return createUIMessageStreamResponse({ stream: createUIMessageStream({
     execute: ({ writer }) => { writer.merge(toAISdkStream(output, { from: "agent", version: "v7", sendReasoning: false, onError: safeError })); },
     onError: safeError,
-    onFinish: async ({ responseMessage }) => {
-      if (!conversation || !responseMessage.parts.some((part) => part.type === "text" && part.text.trim())) return;
+    onFinish: async ({ responseMessage, isAborted }) => {
+      if (!conversation || isAborted || abortSignal.aborted || await output.finishReason === "error") return;
+      if (!responseMessage.parts.some((part) => part.type === "text" && part.text.trim())) return;
       const { id, ...content } = responseMessage;
       await conversationClient().mutation(api.history.upsert, {
         threadId: conversation.threadId, format: HISTORY_FORMAT, id,

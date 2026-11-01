@@ -110,6 +110,8 @@ function Shell({ persistenceError }: { persistenceError: string | null }) {
   const connection = useConvexConnectionState();
   const connected = mounted && connection.isWebSocketConnected;
   const threadsLoading = useAuiState((s) => s.threads.isLoading);
+  const hasOlderThreads = useAuiState((s) => s.threads.hasMore);
+  const loadingOlderThreads = useAuiState((s) => s.threads.isLoadingMore);
   const aui = useAui();
   const chooseNew = () => { void aui.threads.switchToNewThread(); if (window.innerWidth < 768) setSidebarOpen(false); };
   return <div className={`chat-app ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
@@ -121,6 +123,7 @@ function Shell({ persistenceError }: { persistenceError: string | null }) {
       <ThreadListPrimitive.Root className="thread-list">
         {threadsLoading && <p className="history-loading" role="status">Loading history...</p>}
         <ThreadListPrimitive.Items components={{ ThreadListItem: ThreadItem }} />
+        {hasOlderThreads && <ThreadListPrimitive.LoadMore className="load-older">{loadingOlderThreads ? "Loading conversations..." : "Load older conversations"}</ThreadListPrimitive.LoadMore>}
       </ThreadListPrimitive.Root>
       <div className="sidebar-footer"><span className="workspace-avatar">P</span><div><p>Restaurant workspace</p><span>Shared development workspace</span></div></div>
     </aside>

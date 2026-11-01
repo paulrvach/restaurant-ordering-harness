@@ -3,15 +3,18 @@
 import { useMemo } from "react";
 import {
   useAui, type GenericThreadHistoryAdapter, type MessageFormatAdapter,
-  type MessageFormatItem, type RemoteThreadListAdapter, type ThreadHistoryAdapter,
+  type RemoteThreadListAdapter, type ThreadHistoryAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
-import type { ConvexReactClient } from "convex/react";
+import type { FunctionArgs, FunctionReference, FunctionReturnType } from "convex/server";
 import { createAssistantStream } from "assistant-stream";
 import { api } from "../../convex/_generated/api";
 
-type Client = Pick<ConvexReactClient, "query" | "mutation">;
-type Remote = { current(): string | undefined; initialize(): Promise<string> };
+type Client = {
+  query<Query extends FunctionReference<"query">>(reference: Query, args: FunctionArgs<Query>): Promise<FunctionReturnType<Query>>;
+  mutation<Mutation extends FunctionReference<"mutation">>(reference: Mutation, args: FunctionArgs<Mutation>): Promise<FunctionReturnType<Mutation>>;
+};
+type Remote = { current(): string | undefined };
 type ReportError = (message: string) => void;
 
 export function createConvexHistoryStore(client: Client, remote: Remote, reportError: ReportError) {
@@ -24,13 +27,6 @@ export function createConvexHistoryStore(client: Client, remote: Remote, reportE
   };
   return {
     withFormat<TMessage, TStorage extends Record<string, unknown>>(codec: MessageFormatAdapter<TMessage, TStorage>): GenericThreadHistoryAdapter<TMessage> {
-      const upsert = async (item: MessageFormatItem<TMessage>) => guard(async () => {
-        const threadId = await remote.initialize();
-        await client.mutation(api.history.upsert, {
-          threadId, format: codec.format, id: codec.getId(item.message),
-          parentId: item.parentId, blob: JSON.stringify(codec.encode(item)),
-        });
-      });
       return {
         load: () => guard(async () => {
           const threadId = remote.current();
@@ -41,8 +37,9 @@ export function createConvexHistoryStore(client: Client, remote: Remote, reportE
             messages: rows.map((row) => codec.decode({ id: row.id, parent_id: row.parentId, format: codec.format, content: JSON.parse(row.blob) as TStorage })),
           };
         }),
-        append: upsert,
-        update: upsert,
+        // The request handler saves messages; the browser loads saved history.
+        append: async () => {},
+        update: async () => {},
         delete: (items) => guard(async () => {
           const threadId = remote.current();
           if (threadId) await client.mutation(api.history.remove, { threadId, format: codec.format, ids: items.map((item) => codec.getId(item.message)) });
@@ -65,7 +62,6 @@ export function createConvexThreadListAdapter(client: Client, reportError: Repor
       return useMemo(() => {
         const store = createConvexHistoryStore(client, {
           current: () => aui.threadListItem.getState().remoteId ?? undefined,
-          initialize: async () => (await aui.threadListItem.initialize()).remoteId,
         }, reportError);
         const repository = store.withFormat(repositoryCodec);
         const history: ThreadHistoryAdapter = {
@@ -75,9 +71,12 @@ export function createConvexThreadListAdapter(client: Client, reportError: Repor
         return { history };
       }, [aui]);
     },
-    async list() {
-      const rows = await client.query(api.threads.list, {});
-      return { threads: rows.map((row) => ({ remoteId: row.threadId, status: row.status, ...(row.title ? { title: row.title } : {}) })) };
+    async list(params) {
+      const result = await client.query(api.threads.list, { paginationOpts: { numItems: 50, cursor: params?.after ?? null } });
+      return {
+        threads: result.page.map((row) => ({ remoteId: row.threadId, status: row.status, ...(row.title ? { title: row.title } : {}) })),
+        ...(result.isDone ? {} : { nextCursor: result.continueCursor }),
+      };
     },
     async initialize(threadId) { return client.mutation(api.threads.initialize, { threadId }); },
     async rename(threadId, title) { await client.mutation(api.threads.rename, { threadId, title }); },

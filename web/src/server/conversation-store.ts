@@ -36,8 +36,13 @@ export async function prepareConversation(messages: ChatMessage[], threadId: str
   const client = conversationClient();
   const scope = { threadId, format: HISTORY_FORMAT };
   const entries = await client.query(api.history.loadEntries, scope);
-  const parentId = messages.at(-2)?.id ?? null;
-  if (parentId && !entries.some((entry) => entry.id === parentId)) throw new Error("The previous message has not been saved.");
+  const savedIds = new Set(entries.map((entry) => entry.id));
+  let parentId: string | null = null;
+  for (const parent of messages.slice(0, -1).reverse()) {
+    if (parent.id && savedIds.has(parent.id)) { parentId = parent.id; break; }
+    // Interrupted assistant text remains visible until retry or reload.
+    if (parent.role === "user") throw new Error("The previous prompt has not been saved.");
+  }
   const blob = JSON.stringify({ role: "user", parts: [{ type: "text", text: prompt.content }] });
   await client.mutation(api.history.upsert, { ...scope, id: prompt.id, parentId, blob });
   const saved = await client.query(api.history.loadEntries, scope);

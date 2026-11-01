@@ -83,4 +83,77 @@ describe("chat HTTP boundary", () => {
     expect(next.status).toBe(200);
     await next.body?.cancel();
   });
+
+  it("rejects an oversized Content-Length without reading the body", async () => {
+    const read = vi.fn();
+    const cancel = vi.fn();
+    const init = { method: "POST", headers: { "content-length": "1000000" }, duplex: "half", body: new ReadableStream({
+      pull(controller) { read(); controller.enqueue(new TextEncoder().encode(JSON.stringify(valid))); controller.close(); }, cancel,
+    }, { highWaterMark: 0 }) };
+    const run = vi.fn(async () => new Response("reply"));
+    const response = await createChatHandler({ getApiKey: () => "synthetic", run })(new Request("http://localhost/api/chat", init));
+    expect(response.status).toBe(413);
+    expect(read).not.toHaveBeenCalled();
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("stops a body with no length header as soon as it crosses the byte budget", async () => {
+    let reads = 0;
+    const cancel = vi.fn();
+    const init = { method: "POST", duplex: "half", body: new ReadableStream({
+      pull(controller) { reads++; if (reads > 100) controller.close(); else controller.enqueue(new Uint8Array(20_000)); }, cancel,
+    }, { highWaterMark: 0 }) };
+    const run = vi.fn();
+    const response = await createChatHandler({ getApiKey: () => "synthetic", run })(new Request("http://localhost/api/chat", init));
+    expect(response.status).toBe(413);
+    expect(reads).toBe(4);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("measures UTF-8 bytes instead of JavaScript characters", async () => {
+    const run = vi.fn(async () => new Response("reply"));
+    const body = { messages: [{ role: "user", parts: [{ type: "text", text: "湯".repeat(25_000) }] }] };
+    expect(JSON.stringify(body).length).toBeLessThan(64_000);
+    const response = await createChatHandler({ getApiKey: () => "synthetic", run })(request(body));
+    expect(response.status).toBe(413);
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("rejects a busy request before consuming its body", async () => {
+    const handle = createChatHandler({ getApiKey: () => "synthetic", run: async () => new Response(new ReadableStream()) });
+    const first = await handle(request(valid));
+    const second = await handle(request(valid));
+    const read = vi.fn();
+    const cancel = vi.fn();
+    const init = { method: "POST", duplex: "half", body: new ReadableStream({
+      pull(controller) { read(); controller.enqueue(new TextEncoder().encode(JSON.stringify(valid))); controller.close(); }, cancel,
+    }, { highWaterMark: 0 }) };
+    try {
+      const response = await handle(new Request("http://localhost/api/chat", init));
+      expect(response.status).toBe(429);
+      expect(read).not.toHaveBeenCalled();
+      expect(cancel).toHaveBeenCalledOnce();
+    } finally {
+      await first.body?.cancel();
+      await second.body?.cancel();
+    }
+  });
+
+  it("cancels an interrupted body read and releases its request slot", async () => {
+    const abort = new AbortController();
+    const cancel = vi.fn();
+    const init = { method: "POST", duplex: "half", signal: abort.signal, body: new ReadableStream({ cancel }, { highWaterMark: 0 }) };
+    const run = vi.fn(async () => new Response("reply"));
+    const handle = createChatHandler({ getApiKey: () => "synthetic", run });
+    const reading = handle(new Request("http://localhost/api/chat", init));
+    abort.abort();
+    expect((await reading).status).toBe(408);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(run).not.toHaveBeenCalled();
+    const next = await handle(request(valid));
+    expect(next.status).toBe(200);
+    await next.text();
+  });
 });
