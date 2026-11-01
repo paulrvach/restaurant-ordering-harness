@@ -9,7 +9,7 @@
   "scripts": {
     "test": "vitest run evals",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test && npm --prefix social run check",
+    "check": "npm run typecheck && npm test && npm --prefix social run check && npm --prefix web run check",
     "demo": "tsx scripts/demo.ts",
     "social": "npm --prefix social run compose --",
     "eval:live": "node --env-file=.env --import tsx scripts/eval-live.ts"

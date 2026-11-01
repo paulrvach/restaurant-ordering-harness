@@ -11,10 +11,7 @@ export function Thread() {
           <div style={{ color: '#555', maxWidth: 560 }}>
             <p style={{ fontWeight: 600 }}>Describe a recipe to draft an order.</p>
             <p>
-              Synthetic demo only. Paste the bistro-stew text from
-              evals/fixtures/bistro-stew.json and confirm 4 servings. The
-              assistant must ask about the onion yield and flour cups before
-              proposing the 4450c draft.
+              Synthetic recipes only. The assistant asks about missing units and yields before showing a priced draft.
             </p>
           </div>
         </ThreadPrimitive.Empty>
@@ -27,7 +24,6 @@ export function Thread() {
             ),
             AssistantMessage: () => (
               <div style={{ margin: '8px auto 8px 0', maxWidth: 640 }}>
-                <MessagePrimitive.Content />
                 <MessagePrimitive.Parts />
               </div>
             ),

@@ -1,38 +1,33 @@
-# Order worksheet web demo (Issue #2)
+# Order worksheet
 
-In-process Next.js + assistant-ui chat over the deterministic `planOrder`
-boundary. Synthetic demo only. Drafts never place orders.
+Next.js, assistant-ui and an in-process Mastra agent show synthetic order drafts. Draft review never places an order.
 
-## Start
+## Run locally
+
+From the repository root, install the root, social and web packages with `npm ci`, `npm --prefix social ci` and `npm --prefix web ci`.
 
 ```powershell
 cd web
-npm install
-# copy .env.example to .env and set META_MODEL_API_KEY (server-only)
+Copy-Item .env.example .env.local
+# For the local synthetic demonstration, set WORKSHEET_OFFLINE_DEMO=1.
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in a browser.
+Open [localhost:3000](http://localhost:3000). The explicit offline mode uses a local deterministic model. It makes no provider calls and supports the synthetic bistro stew and tomato soup fixtures. Ask for either fixture by name. A plain greeting also streams a local reply.
 
-## Demo script
+To use Meta, set `WORKSHEET_OFFLINE_DEMO=0` and the server-only `META_MODEL_API_KEY` in `.env.local`. This does not approve a live eval. The separate `npm run eval:live` command remains manual and requires the owner's approval.
 
-1. Paste the recipe text from `../evals/fixtures/bistro-stew.json`
-   (`recipeText`) and confirm 4 servings.
-2. First pass must ask: usable onion yield (2 each against the 10ea pack)
-   and flour cups-to-grams (never invented).
-3. Answer flour 250 g and onion 2 each. The worksheet card shows ingredient
-   needs, stock deductions, packs, source price and quoted date per SKU.
-4. The resolved draft totals 4450c across 4 lines (TOM-2KG, ONI-10EA,
-   STK-1L, FLR-5KG). Approve binds to that exact revision; changing
-   servings or stock invalidates it.
+## Check the bistro fixture
 
-## Notes
+1. Ask to load synthetic bistro stew, 4 servings.
+2. Review the blocked worksheet. Answer the onion question with `confirm each` and flour with the independently confirmed `250 g`. Submit the worksheet's Ask-first decision so every pending tool has a result.
+3. The resumed worksheet shows four catalog lines and a 4450 cent subtotal.
+4. Accept the unchanged worksheet, then review the exact revision in the final approval card. Servings or stock changes require another review.
 
-- No key configured: the chat route answers 500 with a plain message and
-  makes no model call.
-- Live model evidence stays manual: `npm run eval:live` from the repo root
-  (bounded: one call, one fixture, 1200 output tokens, 60s timeout) and
-  writes its usage report to `outputs/evals/`. Never run in CI.
-- Deterministic math lives in `../src/ordering.ts`. The three tool schemas
-  live in `../src/worksheet-tools.ts`; the Mastra agent and revision
-  helpers in `../src/worksheet-agent.ts`.
+## Verification and limits
+
+`npm run check` from the root runs the existing offline behavioral evals, the independent social checks, web types and a real-route streaming test. The test uses the installed Mastra core 1.81.0, Mastra AI SDK 1.11.3 and AI SDK 7.0.159. It checks blocked questions, 4450 cent resolution, revision review, thread isolation, tampered results, malformed requests and concurrency without a model API call.
+
+`GET /api/chat` reports health and whether the server is configured. Missing configuration returns 503 on POST. Input is limited to 100 messages and 100,000 characters. Each reply permits at most three model steps, 1024 output tokens per step, no retries and a 30 second abort deadline. Only one reply runs at a time in this server process.
+
+Sessions are in memory, expire after an hour and disappear on server restart. This local demonstration has no production account authorization or durable chat history. Prices and revisions come from server session state. Client tool arguments and results must match the issued gate. There is no export transmission endpoint.
