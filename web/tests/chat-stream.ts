@@ -52,6 +52,42 @@ const secondCalls = chunks(await second.text()).filter(part => part.type === 'to
 assert.equal(secondCalls.length, 1);
 assert.equal(secondCalls[0]!.toolName, 'proposeOrderDraft');
 assert.equal((secondCalls[0]!.input as any).draft.subtotalCents, 4450);
+const reorderFirst = await POST(request('bistro-reordered', [user('Load synthetic bistro stew, 4 servings')], cookie));
+assert.equal(reorderFirst.status, 200);
+const reorderCalls = chunks(await reorderFirst.text()).filter(part => part.type === 'tool-input-available');
+assert.equal(reorderCalls.length, 3);
+const reorderProposal = reorderCalls.find(part => part.toolName === 'proposeOrderDraft')!;
+const reorderQuestions = reorderCalls.filter(part => part.toolName === 'requestMissingFact');
+const reorderMessages: UIMessage[] = [user('Load synthetic bistro stew, 4 servings')];
+const answerFor = (call: Record<string, unknown>) => call.toolName === 'proposeOrderDraft'
+  ? { approved: false, servings: 4, stockEdits: [] }
+  : { ...(call.input as object), value: (call.input as any).topic === 'unit' ? '250 g' : 'confirm each' };
+reorderMessages.push({ id: 'reordered-gates', role: 'assistant', parts: [...reorderQuestions, reorderProposal].map(call => ({ type: `tool-${call.toolName}`, toolCallId: call.toolCallId, input: call.input, state: 'output-available', output: answerFor(call) })) as UIMessage['parts'] });
+const reordered = await POST(request('bistro-reordered', reorderMessages, cookie));
+assert.equal(reordered.status, 200);
+const reorderedCalls = chunks(await reordered.text()).filter(part => part.type === 'tool-input-available');
+assert.equal(reorderedCalls.length, 1);
+assert.equal(reorderedCalls[0]!.toolName, 'proposeOrderDraft');
+assert.equal((reorderedCalls[0]!.input as any).draft.subtotalCents, 4450);
+console.log('PASS question-first batch continuation resolves to the same 4450c draft');
+const dupFirst = await POST(request('bistro-duplicate', [user('Load synthetic bistro stew, 4 servings')], cookie));
+assert.equal(dupFirst.status, 200);
+const dupCalls = chunks(await dupFirst.text()).filter(part => part.type === 'tool-input-available');
+assert.equal(dupCalls.length, 3);
+const dupProposal = dupCalls.find(part => part.toolName === 'proposeOrderDraft')!;
+const dupQuestions = dupCalls.filter(part => part.toolName === 'requestMissingFact');
+const dupAnswer = (call: Record<string, unknown>) => call.toolName === 'proposeOrderDraft'
+  ? { approved: false, servings: 4, stockEdits: [] }
+  : { ...(call.input as object), value: (call.input as any).topic === 'unit' ? '250 g' : 'confirm each' };
+const dupParts = [...dupQuestions, dupProposal].map(call => ({ type: `tool-${call.toolName}`, toolCallId: call.toolCallId, input: call.input, state: 'output-available', output: dupAnswer(call) }));
+const dupMessages: UIMessage[] = [user('Load synthetic bistro stew, 4 servings')];
+dupMessages.push({ id: 'dup-gates', role: 'assistant', parts: [...dupParts, structuredClone(dupParts[0]!)] as UIMessage['parts'] });
+const duped = await POST(request('bistro-duplicate', dupMessages, cookie));
+assert.equal(duped.status, 200);
+const dupedCalls = chunks(await duped.text()).filter(part => part.type === 'tool-input-available');
+assert.equal(dupedCalls.length, 1);
+assert.equal((dupedCalls[0]!.input as any).draft.subtotalCents, 4450);
+console.log('PASS repeated identical answers in one batch apply once');
 const resolved = secondCalls[0]!;
 messages.push({ id: 'resolved-gate', role: 'assistant', parts: [{ type: 'tool-proposeOrderDraft', toolCallId: resolved.toolCallId as string, input: resolved.input, state: 'output-available', output: { approved: true, servings: 4, stockEdits: [] } }] });
 const third = await POST(request('bistro', messages, cookie));
