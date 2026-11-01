@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       entry.demoStarted = true;
     }
     try {
+      const batch: { gate: IssuedGate; output: unknown }[] = [];
       for (const message of body.messages) for (const part of message.parts) {
         if (!part.type.startsWith('tool-') || !('toolCallId' in part) || !('state' in part) || part.state !== 'output-available') continue;
         const gate = entry.issued.get(part.toolCallId);
@@ -68,8 +69,19 @@ export async function POST(request: Request) {
         }
         if (!('input' in part) || !('output' in part) || part.type !== `tool-${gate.name}` || JSON.stringify(part.input) !== JSON.stringify(gate.args)) throw new Error();
         if (gate.consumed) { if (JSON.stringify(part.output) !== JSON.stringify(gate.result)) throw new Error(); continue; }
-        entry.session.ingestResult(gate.name, gate.args, part.output);
-        gate.result = structuredClone(part.output);
+        batch.push({ gate, output: part.output });
+      }
+      // Validate the whole batch against the pre-batch worksheet before mutating it.
+      for (const { gate } of batch) {
+        if (!entry.session.validateGate(gate.name, gate.args)) throw new Error();
+      }
+      // Apply proposals before questions: answering a question recomputes the
+      // draft, which would otherwise invalidate an issued proposal below.
+      const gateOrder = (name: string) => name === 'proposeOrderDraft' ? 0 : name === 'requestMissingFact' ? 1 : 2;
+      batch.sort((left, right) => gateOrder(left.gate.name) - gateOrder(right.gate.name));
+      for (const { gate, output } of batch) {
+        entry.session.ingestResult(gate.name, gate.args, output);
+        gate.result = structuredClone(output);
         gate.consumed = true;
       }
     } catch {
