@@ -1,0 +1,15 @@
+{
+  "id": "synthetic-tomato-soup-v1",
+  "recipeText": "Synthetic tomato soup. Base yield: 4 servings. Ingredients: 500 g tomato. Use the exact catalog ingredient tomato and SKU TOM-2KG. No other ingredients.",
+  "orderInput": {
+    "recipe": { "name": "Synthetic tomato soup", "servings": 4,
+      "ingredients": [{ "ingredient": "tomato", "amount": 500, "unit": "g", "sku": "TOM-2KG" }] },
+    "targetServings": 20,
+    "inventory": [{ "ingredient": "tomato", "amount": 1, "unit": "kg" }],
+    "catalog": [{ "vendorId": "demo-produce", "sku": "TOM-2KG", "ingredient": "tomato",
+      "pack": { "amount": 2, "unit": "kg" }, "priceCents": 1250, "currency": "USD",
+      "source": "synthetic-catalog:row-1", "quotedOn": "2026-10-31", "available": true }],
+    "asOf": "2026-10-31"
+  },
+  "expected": { "status": "draft", "sku": "TOM-2KG", "packs": 1, "subtotalCents": 1250, "demandBase": 2500, "netDemandBase": 1500 }
+}
