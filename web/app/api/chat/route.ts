@@ -45,7 +45,16 @@ export async function POST(request: Request) {
     let entry = conversations.get(key);
     const userText = body.messages.filter(message => message.role === 'user').flatMap(message => message.parts.filter(part => part.type === 'text').map(part => part.text)).join('\n');
     if (!entry) {
+      // Validate before reserving: rejected recipes must not consume a slot.
+      if (/bistro|stew|tomato soup|recipe|servings/i.test(userText) && process.env.WORKSHEET_OFFLINE_DEMO === '1' && !/bistro stew|tomato soup/i.test(userText)) {
+        active = false;
+        return Response.json({ error: 'The offline demo supports synthetic bistro stew and tomato soup. Select one by name.' }, { status: 400 });
+      }
       if (conversations.size >= 100) { active = false; return Response.json({ error: 'Local demo session limit reached. Restart the server.' }, { status: 503 }); }
+      // Bound each caller so one browser cannot exhaust the shared table.
+      let callerThreads = 0;
+      for (const id of conversations.keys()) if (id.startsWith(`${cookie}:`)) callerThreads += 1;
+      if (callerThreads >= 10) { active = false; return Response.json({ error: 'This browser already has 10 open worksheet threads. Reuse a thread or wait for one to expire.' }, { status: 429 }); }
       entry = { session: seedWorksheet(userText), issued: new Map(), touched: Date.now(), demoStarted: false };
       conversations.set(key, entry);
     }

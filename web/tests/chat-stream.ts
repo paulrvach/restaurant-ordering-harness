@@ -113,6 +113,34 @@ assert.equal(tomatoCalls.length, 1);
 assert.equal((tomatoCalls[0]!.input as any).draft.lines.length, 1);
 assert.equal((await POST(request('unsupported', [user('Make a pancake recipe')]))).status, 400);
 console.log('PASS real-route client tool continuation: blocked flour/yield -> 4450c -> exact-revision approval; threads isolated');
+const quotaFirst = await POST(request('quota-0', [user('Hello')]));
+assert.equal(quotaFirst.status, 200);
+const quotaCookie = quotaFirst.headers.get('set-cookie')!.split(';')[0]!;
+await quotaFirst.text();
+for (let i = 1; i < 10; i += 1) {
+  const next = await POST(request(`quota-${i}`, [user('Hello')], quotaCookie));
+  assert.equal(next.status, 200);
+  await next.text();
+}
+assert.equal((await POST(request('quota-over', [user('Hello')], quotaCookie))).status, 429);
+const outsider = await POST(request('quota-outsider', [user('Hello')]));
+assert.equal(outsider.status, 200);
+await outsider.text();
+const rejectFirst = await POST(request('reject-0', [user('Hello')]));
+assert.equal(rejectFirst.status, 200);
+const rejectCookie = rejectFirst.headers.get('set-cookie')!.split(';')[0]!;
+await rejectFirst.text();
+for (let i = 1; i < 9; i += 1) {
+  const next = await POST(request(`reject-${i}`, [user('Hello')], rejectCookie));
+  assert.equal(next.status, 200);
+  await next.text();
+}
+assert.equal((await POST(request('reject-unsupported', [user('Make a pancake recipe')], rejectCookie))).status, 400);
+const rejectTenth = await POST(request('reject-9', [user('Hello')], rejectCookie));
+assert.equal(rejectTenth.status, 200);
+await rejectTenth.text();
+assert.equal((await POST(request('reject-over', [user('Hello')], rejectCookie))).status, 429);
+console.log('PASS one caller cannot exhaust the shared table; rejected recipes reserve no slot');
 
 for (const body of ['null', '{}', '{']) assert.equal((await POST(new Request('http://localhost/api/chat', { method: 'POST', body }))).status, 400);
 delete process.env.WORKSHEET_OFFLINE_DEMO;
