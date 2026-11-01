@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     for (const [id, entry] of conversations) if (Date.now() - entry.touched > 3_600_000) conversations.delete(id);
     let entry = conversations.get(key);
     const userText = body.messages.filter(message => message.role === 'user').flatMap(message => message.parts.filter(part => part.type === 'text').map(part => part.text)).join('\n');
+    let createdEntry = false;
     if (!entry) {
       // Validate before reserving: rejected recipes must not consume a slot.
       if (/bistro|stew|tomato soup|recipe|servings/i.test(userText) && process.env.WORKSHEET_OFFLINE_DEMO === '1' && !/bistro stew|tomato soup/i.test(userText)) {
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
       if (callerThreads >= 10) { active = false; return Response.json({ error: 'This browser already has 10 open worksheet threads. Reuse a thread or wait for one to expire.' }, { status: 429 }); }
       entry = { session: seedWorksheet(userText), issued: new Map(), touched: Date.now(), demoStarted: false };
       conversations.set(key, entry);
+      createdEntry = true;
     }
     entry.touched = Date.now();
     if (!entry.demoStarted && /bistro|stew|tomato soup|recipe|servings/i.test(userText)) {
@@ -100,6 +102,8 @@ export async function POST(request: Request) {
       }
     } catch {
       active = false;
+      // A mismatched batch on a fresh thread holds no usable state; release its slot.
+      if (createdEntry) conversations.delete(key);
       return Response.json({ error: 'This answer does not match the current worksheet. Start a new recipe thread.' }, { status: 409 });
     }
     try {

@@ -141,6 +141,22 @@ assert.equal(rejectTenth.status, 200);
 await rejectTenth.text();
 assert.equal((await POST(request('reject-over', [user('Hello')], rejectCookie))).status, 429);
 console.log('PASS one caller cannot exhaust the shared table; rejected recipes reserve no slot');
+const releaseFirst = await POST(request('release-0', [user('Hello')]));
+assert.equal(releaseFirst.status, 200);
+const releaseCookie = releaseFirst.headers.get('set-cookie')!.split(';')[0]!;
+await releaseFirst.text();
+for (let i = 1; i < 9; i += 1) {
+  const next = await POST(request(`release-${i}`, [user('Hello')], releaseCookie));
+  assert.equal(next.status, 200);
+  await next.text();
+}
+const bogus: UIMessage = { id: 'bogus-gates', role: 'assistant', parts: [{ type: 'tool-proposeOrderDraft', toolCallId: 'unknown-gate', input: {}, state: 'output-available', output: {} }] as UIMessage['parts'] };
+assert.equal((await POST(request('release-bogus', [user('Hello'), bogus], releaseCookie))).status, 409);
+const releaseTenth = await POST(request('release-9', [user('Hello')], releaseCookie));
+assert.equal(releaseTenth.status, 200);
+await releaseTenth.text();
+assert.equal((await POST(request('release-over', [user('Hello')], releaseCookie))).status, 429);
+console.log('PASS mismatched batches on fresh threads release their slot');
 
 for (const body of ['null', '{}', '{']) assert.equal((await POST(new Request('http://localhost/api/chat', { method: 'POST', body }))).status, 400);
 delete process.env.WORKSHEET_OFFLINE_DEMO;
