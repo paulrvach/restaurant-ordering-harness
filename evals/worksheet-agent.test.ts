@@ -143,3 +143,17 @@ test('approval binds to the exact revision and edits invalidate it', () => {
     expect.arrayContaining(['proposeOrderDraft', 'requestMissingFact', 'approveOrderDraft']),
   );
 });
+
+test('declining final approval clears review so the worksheet returns to the editable proposal', () => {
+  const session = createWorksheetSession(fixture.orderInput);
+  session.ingestResult('proposeOrderDraft', session.snapshot().proposal,
+    { approved: true, servings: 4, stockEdits: [] });
+  expect(session.snapshot().reviewed).toBe(true);
+  const approval = session.snapshot().approval!;
+  expect(session.validateGate('approveOrderDraft', approval)).toBe(true);
+  session.ingestResult('approveOrderDraft', approval, { approved: false, revisionId: approval.revisionId });
+  expect(session.snapshot().reviewed).toBe(false);
+  expect(session.snapshot().approved).toBe(false);
+  expect(session.validateGate('approveOrderDraft', session.snapshot().approval)).toBe(false);
+  expect(session.validateGate('proposeOrderDraft', session.snapshot().proposal)).toBe(true);
+});

@@ -257,7 +257,12 @@ export function createWorksheetSession(raw: unknown, questions: RequestMissingFa
     } else {
       const answer = approveOrderDraftOutputSchema.parse(result);
       if (answer.revisionId !== snapshot().revisionId) throw new Error('Approval is for an outdated revision.');
-      approvedRevision = answer.approved ? answer.revisionId : null;
+      if (answer.approved) {
+        approvedRevision = answer.revisionId;
+      } else {
+        approvedRevision = null;
+        reviewedRevision = null;
+      }
     }
     return snapshot();
   }
