@@ -136,13 +136,15 @@ export type WorksheetSession = {
 /** Keep catalog terms and approval state on the server, outside model messages. */
 export function createWorksheetSession(raw: unknown, questions: RequestMissingFactInput[] = []): WorksheetSession {
   const input = rawOrderInputSchema.parse(structuredClone(raw));
-  let pending = questions.map(question => requestMissingFactInputSchema.parse(question));
+  let human = questions.map(question => requestMissingFactInputSchema.parse(question));
+  let pending: RequestMissingFactInput[] = [];
   let approvedRevision: string | null = null;
   let reviewedRevision: string | null = null;
   const dimension = (unit: string) => ['g', 'kg'].includes(unit) ? 'mass'
     : ['ml', 'l'].includes(unit) ? 'volume' : unit === 'each' ? 'count' : 'unsupported';
 
   function findQuestions() {
+    const detected: RequestMissingFactInput[] = [];
     for (const row of input.recipe.ingredients) {
       const offer = input.catalog.filter(offer => offer.sku === row.sku);
       const selected = offer[0];
@@ -163,8 +165,11 @@ export function createWorksheetSession(raw: unknown, questions: RequestMissingFa
           label: `Update the source catalog for ${row.ingredient}`, placeholder: 'Catalog update required',
           reason: 'A current available source price is required. A chat answer cannot replace catalog terms.' };
       }
-      if (question && !pending.some(item => item.ingredient === question.ingredient && item.sku === question.sku && item.topic === question.topic)) pending.push(question);
+      if (question && !detected.some(item => item.ingredient === question.ingredient && item.sku === question.sku && item.topic === question.topic)
+        && !human.some(item => item.ingredient === question.ingredient && item.sku === question.sku && item.topic === question.topic)) detected.push(question);
     }
+    // Rebuild auto-detected questions from the current input; unanswered human questions persist.
+    pending = [...human, ...detected];
   }
   findQuestions();
 
@@ -172,7 +177,7 @@ export function createWorksheetSession(raw: unknown, questions: RequestMissingFa
     const parsed = rawRecipeSchema.parse(recipe);
     const parsedQuestions = questions.map(question => requestMissingFactInputSchema.parse(question));
     input.recipe = parsed;
-    pending = parsedQuestions;
+    human = parsedQuestions;
     approvedRevision = null;
     reviewedRevision = null;
     findQuestions();
@@ -249,7 +254,7 @@ export function createWorksheetSession(raw: unknown, questions: RequestMissingFa
         if (offer) { row.sku = offer.sku; resolved = true; }
       }
       if (resolved) {
-        pending = pending.filter(item => !same(item, question));
+        human = human.filter(item => !same(item, question));
         findQuestions();
       }
       approvedRevision = null;
