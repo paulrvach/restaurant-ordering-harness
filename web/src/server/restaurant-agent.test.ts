@@ -47,15 +47,14 @@ function replying(text: string, fails = false) {
   } });
 }
 
-function transport() {
-  const handle = createChatHandler({ getApiKey: () => "synthetic-offline-key", prepare: prepareConversation, run: streamRestaurantReply });
+function transport(handle = createChatHandler({ getApiKey: () => "synthetic-offline-key", prepare: prepareConversation, run: streamRestaurantReply })) {
   return new DefaultChatTransport({ api: "http://offline.test/api/chat", body: { threadId: scope.threadId },
     fetch: (input, init) => handle(new Request(input, init)),
   });
 }
 
-async function send(messages: UIMessage[], signal = new AbortController().signal, observe?: (message: UIMessage) => void) {
-  const chunks = await transport().sendMessages({ trigger: "submit-message", chatId: scope.threadId, messageId: undefined, messages, abortSignal: signal });
+async function send(messages: UIMessage[], signal = new AbortController().signal, observe?: (message: UIMessage) => void, sender = transport()) {
+  const chunks = await sender.sendMessages({ trigger: "submit-message", chatId: scope.threadId, messageId: undefined, messages, abortSignal: signal });
   let reply: UIMessage | undefined;
   for await (const message of readUIMessageStream({ stream: chunks })) {
     reply = message;
@@ -76,6 +75,38 @@ beforeEach(async () => {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 
 describe("production Mastra chat stream", () => {
+  it("preserves a busy-rejected prompt when the next message is submitted", async () => {
+    model = replying("4");
+    const run: typeof streamRestaurantReply = async (...args) => args[0].at(-1)?.content === "Hold a request"
+      ? new Response(new ReadableStream()) : streamRestaurantReply(...args);
+    const handle = createChatHandler({ getApiKey: () => "synthetic-offline-key", prepare: prepareConversation, run });
+    const hold = async (threadId: string) => {
+      await backend.mutation(api.threads.initialize, { threadId });
+      return handle(new Request("http://offline.test/api/chat", { method: "POST", body: JSON.stringify({ threadId, messages: [
+        { id: threadId, role: "user", parts: [{ type: "text", text: "Hold a request" }] },
+      ] }) }));
+    };
+    const first = await hold("occupied-1");
+    const second = await hold("occupied-2");
+    const sender = transport(handle);
+    try {
+      await expect(send([firstPrompt], undefined, undefined, sender)).rejects.toThrow("busy");
+      expect(await backend.query(api.history.loadEntries, scope)).toEqual([]);
+      expect(model.doStreamCalls).toHaveLength(0);
+    } finally {
+      await first.body?.cancel();
+      await second.body?.cancel();
+    }
+    const followUp: UIMessage = { id: "after-busy", role: "user", parts: [{ type: "text", text: "What serving count did I just give you?" }] };
+    const reply = await send([firstPrompt, followUp], undefined, undefined, sender);
+    expect(reply && textOf(reply)).toBe("4");
+    expect(JSON.stringify(model.doStreamCalls[0]?.prompt)).toContain("Tomato soup recipe for 4 servings");
+    const entries = await backend.query(api.history.loadEntries, scope);
+    expect(entries.map((entry) => entry.id)).toEqual([firstPrompt.id, followUp.id, reply?.id]);
+    expect(entries[1]?.parentId).toBe(firstPrompt.id);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it("saves the streamed message ID and reloads it as context for a follow-up", async () => {
     model = replying("Which ingredients and vendor offers do you have?");
     const first = await send([firstPrompt]);

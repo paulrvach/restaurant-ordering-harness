@@ -37,14 +37,21 @@ export async function prepareConversation(messages: ChatMessage[], threadId: str
   const scope = { threadId, format: HISTORY_FORMAT };
   const entries = await client.query(api.history.loadEntries, scope);
   const savedIds = new Set(entries.map((entry) => entry.id));
-  let parentId: string | null = null;
-  for (const parent of messages.slice(0, -1).reverse()) {
-    if (parent.id && savedIds.has(parent.id)) { parentId = parent.id; break; }
-    // Interrupted assistant text remains visible until retry or reload.
-    if (parent.role === "user") throw new Error("The previous prompt has not been saved.");
+  const anchorIndex = messages.slice(0, -1).findLastIndex((message) => message.id && savedIds.has(message.id));
+  let parentId = messages[anchorIndex]?.id ?? null;
+  const pendingIds = new Set<string>();
+  const pending = messages.slice(anchorIndex + 1).flatMap((message) => {
+    if (message.role === "assistant") return [];
+    const id = message.id;
+    if (!id || id === parentId || pendingIds.has(id)) throw new Error("Pending prompts require unique message IDs.");
+    pendingIds.add(id);
+    return [{ id, content: message.content }];
+  });
+  for (const message of pending) {
+    const blob = JSON.stringify({ role: "user", parts: [{ type: "text", text: message.content }] });
+    await client.mutation(api.history.upsert, { ...scope, id: message.id, parentId, blob });
+    parentId = message.id;
   }
-  const blob = JSON.stringify({ role: "user", parts: [{ type: "text", text: prompt.content }] });
-  await client.mutation(api.history.upsert, { ...scope, id: prompt.id, parentId, blob });
   const saved = await client.query(api.history.loadEntries, scope);
   return { threadId, promptId: prompt.id, messages: savedBranch(saved, prompt.id) };
 }

@@ -5,7 +5,7 @@ The configured Convex functions directory is `web/convex/`, selected by the root
 The request path is:
 
 1. assistant-ui initializes the thread through the Convex adapter and sends its ID with the message.
-2. The Next chat handler validates the request and saves the user prompt in Convex.
+2. The Next chat handler validates the request and saves pending user prompts in order after the last saved ancestor. This includes prompts retained in the browser after a busy response, so a follow-up preserves their text without a reload.
 3. The server reconstructs the selected branch from saved parent links. It uses saved conversation content for the model context.
 4. Mastra calls the direct Meta API using `muse-spark-1.3`, one step, zero retries, a 1,200-token output limit and a 45-second deadline. Each Next process allows two concurrent responses.
 5. The server translates the stream to AI SDK v7 events and saves the completed reply. The browser history adapter loads those IDs and parent links; message writes belong to the request handler. Aborted and failed partial replies remain temporary browser text, so they cannot overwrite saved history. A follow-up resumes from the last saved ancestor.
