@@ -76,3 +76,17 @@ Project skills live under `.agents/skills/`.
 | `before-and-after` | rstack, vendored from [vercel-labs/before-and-after](https://github.com/vercel-labs/before-and-after) (PolyForm Shield 1.0.0, see skill folder) |
 | `greploop`, `greploop-apps` | rstack, vendored from [greptileai/skills](https://github.com/greptileai/skills) (MIT, see skill folders) |
 | `unslop` | rstack, vendored from [cursor/plugins (pstack)](https://github.com/cursor/plugins/tree/main/pstack/skills/unslop) (MIT; frontmatter edited so agents apply it unprompted, body untouched) |
+
+<!-- convex-ai-start -->
+
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read
+`convex/_generated/ai/guidelines.md` first** for important guidelines on
+how to correctly use Convex APIs and patterns. The file contains rules that
+override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running
+`npx convex ai-files install`.
+
+<!-- convex-ai-end -->

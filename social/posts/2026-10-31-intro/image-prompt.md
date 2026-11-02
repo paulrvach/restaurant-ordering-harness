@@ -1,7 +1,0 @@
-# Image brief: first build-in-public post
-
-Generation: built-in image tool, October 31, 2026. Selected output: image.png. Concept illustration; not a product screenshot. No Meta API credit consumption is claimed for this asset.
-
-## Final prompt
-
-Use case: ads-marketing. Asset type: landscape social launch illustration for a restaurant procurement app being built in public. Create a polished editorial still life on a working restaurant kitchen prep counter: a handwritten recipe card and fresh tomatoes, herbs and a small stainless bowl on the left; neatly arranged vendor produce cartons and a clean printed order sheet on the right. A subtle flowing arrangement of ingredient objects connects recipe planning to organized purchasing. Warm natural side light, tactile paper, brushed stainless steel, realistic food texture, calm professional restaurant mood. Clear visual hierarchy, generous negative space above for a headline. Sophisticated food editorial photography with a restrained conceptual touch, wide 3:2 composition, readable at social feed size. Include ONLY this exact headline in elegant clear dark type: "From recipe to vendor order" and a small caption: "Building in public". No software screenshots, no dashboards, no fake accuracy metrics, no logos, no corporate branding, no claims of a finished product, no watermarks. The printed order sheet may show abstract ruled rows but no invented readable prices or business names.
