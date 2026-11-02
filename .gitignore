@@ -8,3 +8,7 @@ coverage/
 dist/
 .next/
 *.log
+.artifacts/
+*.tsbuildinfo
+.next-build/
+web/next-env.d.ts
